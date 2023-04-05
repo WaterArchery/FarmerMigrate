@@ -20,6 +20,11 @@ public class SQLite extends Database{
         dbname = "Database";
     }
 
+    /*
+    eğer klasörün içine eski db
+    dosyasını atmazsa connection null
+    dönüyor
+     */
     public Connection getSQLConnection() {
         File dataFile = new File(instance.getDataFolder(), dbname + ".db");
         File folder = new File(instance.getDataFolder(), "");

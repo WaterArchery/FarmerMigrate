@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import xyz.geik.farmer.Main;
 import xyz.geik.farmer.api.FarmerAPI;
 import xyz.geik.farmer.api.managers.DatabaseManager;
+import xyz.geik.farmer.api.managers.FarmerManager;
 import xyz.geik.farmer.database.DBConnection;
 import xyz.geik.farmer.model.Farmer;
 import xyz.geik.farmer.modules.FarmerModule;
@@ -76,15 +77,20 @@ public abstract class Database {
                 HashMap<Material, Long> materialHash = new HashMap<>();
                 ResultSetMetaData rsData = resultSet.getMetaData();
                 for (int i = 0; i < rsData.getColumnCount(); i++) {
-                    try {
-                        String columnName = rsData.getColumnName(i);
-                        Material material = Material.getMaterial(columnName.toUpperCase());
-                        if (material != null && material != Material.AIR) {
+                    /*
+                    sütun isimlerine göre
+                    material varsa bunun sayısını
+                    çekip çiftçiye ekliyor
+                     */
+                    String columnName = rsData.getColumnName(i + 1);
+                    Material material = Material.getMaterial(columnName.toUpperCase());
+                    if (material != null && material != Material.AIR) {
+                        try {
                             long count = resultSet.getLong(columnName);
                             materialHash.put(material, count);
                         }
+                        catch (Exception ignored){}
                     }
-                    catch (Exception ignored){}
                 }
                 String owner = resultSet.getString("Owner");
                 int level = resultSet.getInt("farmerLvl");
@@ -95,37 +101,45 @@ public abstract class Database {
                 String locationTxt = resultSet.getString("farmerLocation");
                 if (id != 96456) {
                     Location loc = buildLocation(locationTxt.split("/"));
-                    String regionID = FarmerAPI.getInstance().getIntegration().getRegionID(loc);
+                    Main farmerInstance = FarmerAPI.getInstance();
+                    String regionID = farmerInstance.getIntegration().getRegionID(loc);
                     if (regionID != null) {
-                        if (!FarmerAPI.getFarmerManager().hasFarmer(loc)) {
-                            Farmer farmer = new Farmer(regionID, UUID.fromString(owner), level);
-                            for (Material material : materialHash.keySet()) {
-                                long amount = materialHash.get(material);
-                                farmer.getInv().setItemAmount(XMaterial.matchXMaterial(material), amount);
-                            }
+                        if (FarmerAPI.getFarmerManager().hasFarmer(loc)) {
                             /*
-                            modül ekleme
+                            regionId kayıtlı bir farmer varsa
+                            sadece eşyaları ekliyor v5 üzerinden
                              */
-                            if (autoSell == 1) {
-                                farmer.changeAttribute("AutoSeller");
+                            for (Farmer farmer : FarmerManager.getFarmers().values()) {
+                                if (farmer.getRegionID().equalsIgnoreCase(regionID)) {
+                                    addItemsToFarmer(farmer, materialHash);
+                                    Bukkit.getConsoleSender().sendMessage("§eFarmer Migrate - " + owner + " oyuncusunun sahip olduğu " + id + " idli çiftçi mevcut olduğu için sadece eşyalar eklendi.");
+                                    return;
+                                }
                             }
-                            if (autoCollect == 1) {
-                                farmer.changeAttribute("AutoHarvest");
-                            }
-                            if (spawnerKill == 1) {
-                                farmer.changeAttribute("SpawnerKiller");
-                            }
-                            /*
-                            farmer bağlantısı ile
-                            verileri güncelleme
-                             */
-                            Connection farmerConnection = DBConnection.connect();
-                            farmer.saveFarmer(farmerConnection);
-                            Bukkit.getConsoleSender().sendMessage("§aFarmer Migrate - " + owner + " oyuncusunun sahip olduğu " + id + " idli çiftçi kayıt edildi.");
-                        }
-                        else {
                             Bukkit.getConsoleSender().sendMessage("§eFarmer Migrate - " + owner + " oyuncusunun sahip olduğu " + id + " idli çiftçi mevcut olduğu için atlanıyor.");
+                            return;
                         }
+                        Farmer farmer = new Farmer(regionID, UUID.fromString(owner), level);
+                        addItemsToFarmer(farmer, materialHash);
+                        /*
+                        modül ekleme
+                         */
+                        if (autoSell == 1) {
+                            farmer.changeAttribute("AutoSeller");
+                        }
+                        if (autoCollect == 1) {
+                            farmer.changeAttribute("AutoHarvest");
+                        }
+                        if (spawnerKill == 1) {
+                            farmer.changeAttribute("SpawnerKiller");
+                        }
+                        /*
+                        farmer bağlantısı ile
+                        verileri güncelleme
+                         */
+                        Connection farmerConnection = DBConnection.connect();
+                        farmer.saveFarmer(farmerConnection);
+                        Bukkit.getConsoleSender().sendMessage("§aFarmer Migrate - " + owner + " oyuncusunun sahip olduğu " + id + " idli çiftçi kayıt edildi.");
                     }
                     else {
                         Bukkit.getConsoleSender().sendMessage("§cFarmer Migrate - " + owner + " oyuncusunun sahip olduğu " + id + " idli çiftçinin lokasyonu bulunamadı.");
@@ -141,6 +155,13 @@ public abstract class Database {
                 if (ps != null) { ps.close(); }
             }
             catch (SQLException ignored){}
+        }
+    }
+
+    public void addItemsToFarmer(Farmer farmer,  HashMap<Material, Long> materialHash) {
+        for (Material material : materialHash.keySet()) {
+            long amount = materialHash.get(material);
+            farmer.getInv().forceSumItem(XMaterial.matchXMaterial(material), amount);
         }
     }
 
