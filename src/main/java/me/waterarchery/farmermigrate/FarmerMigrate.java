@@ -24,6 +24,7 @@ public final class FarmerMigrate extends JavaPlugin {
     }
 
     public static FarmerMigrate getInstance() { return instance; }
+
     public static Database getOldDatabase() { return oldDatabase; }
 
 }

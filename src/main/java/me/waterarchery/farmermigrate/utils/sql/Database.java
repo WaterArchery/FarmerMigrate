@@ -11,6 +11,7 @@ import xyz.geik.farmer.api.managers.FarmerManager;
 import xyz.geik.farmer.database.DBConnection;
 import xyz.geik.farmer.model.Farmer;
 import xyz.geik.farmer.modules.FarmerModule;
+import xyz.geik.farmer.shades.storage.Config;
 import xyz.geik.farmer.shades.xseries.XMaterial;
 
 import java.sql.*;
@@ -102,25 +103,31 @@ public abstract class Database {
                 String locationTxt = resultSet.getString("farmerLocation");
                 if (id != 96456) {
                     Location loc = buildLocation(locationTxt.split("/"));
-                    Main farmerInstance = FarmerAPI.getInstance();
-                    String regionID = farmerInstance.getIntegration().getRegionID(loc);
+                    String regionID = Main.getIntegration().getRegionID(loc);
                     if (regionID != null) {
                         if (FarmerAPI.getFarmerManager().hasFarmer(loc)) {
                             /*
                             regionId kayıtlı bir farmer varsa
                             sadece eşyaları ekliyor v5 üzerinden
                              */
+                            boolean found = false;
                             for (Farmer farmer : FarmerManager.getFarmers().values()) {
                                 if (farmer.getRegionID().equalsIgnoreCase(regionID)) {
                                     addItemsToFarmer(farmer, materialHash);
                                     Bukkit.getConsoleSender().sendMessage("§eFarmer Migrate - " + owner + " oyuncusunun sahip olduğu " + id + " idli çiftçi mevcut olduğu için sadece eşyalar eklendi.");
-                                    return;
+                                    found = true;
+                                    break;
                                 }
                             }
-                            Bukkit.getConsoleSender().sendMessage("§eFarmer Migrate - " + owner + " oyuncusunun sahip olduğu " + id + " idli çiftçi mevcut olduğu için atlanıyor.");
-                            return;
+                            if (!found) {
+                                Bukkit.getConsoleSender().sendMessage("§eFarmer Migrate - " + owner + " oyuncusunun sahip olduğu " + id + " idli çiftçi mevcut olduğu için atlanıyor.");
+                            }
+                            continue;
                         }
-                        // TODO : Check level system. Is it work with v5 level parameter?
+                        if (!getV6Levels().contains(level)) {
+                            Bukkit.getConsoleSender().sendMessage("§dFarmer Migrate - Çifti verisinde " + level + " seviyesi bulunamadı.");
+                            continue;
+                        }
                         Farmer farmer = new Farmer(regionID, UUID.fromString(owner), level);
                         addItemsToFarmer(farmer, materialHash);
                         /*
@@ -172,6 +179,24 @@ public abstract class Database {
         double y = Double.parseDouble(parts[2]);
         double z = Double.parseDouble(parts[3]);
         return new Location(getServer().getWorld(world), x, y, z);
+    }
+
+    ArrayList<Integer> v6Levels;
+    public ArrayList<Integer> getV6Levels() {
+        // Old Levels
+        if (v6Levels == null) {
+            v6Levels = new ArrayList<>();
+            Config config = Main.getConfigFile();
+            for (String key : config.getSection("levels").singleLayerKeySet()) {
+                try {
+                    v6Levels.add(Integer.parseInt(key));
+                } catch (NumberFormatException ex) {
+                    Bukkit.getConsoleSender().sendMessage("§cFarmer Migrate - Çiftçi eklentisinde bulunan seviye " + key + " bir sayı değil");
+                }
+            }
+            return v6Levels;
+        }
+        return v6Levels;
     }
 
 }

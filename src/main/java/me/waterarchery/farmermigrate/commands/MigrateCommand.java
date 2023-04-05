@@ -11,11 +11,13 @@ public class MigrateCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
         if (cmd.getName().equalsIgnoreCase("farmermigrate")) {
-            if (args.length == 0) {
-                if (sender.hasPermission("farmermigrate.admin")) {
-                    new ConfigMigration();
-                    FarmerMigrate.getOldDatabase().migrateDatabase();
-                }
+            if (args.length == 0 && sender.hasPermission("farmermigrate.admin")) {
+                new ConfigMigration();
+                FarmerMigrate.getOldDatabase().migrateDatabase();
+            }
+            else if (args.length == 1 && args[0].equalsIgnoreCase("async") && sender.hasPermission("farmermigrate.admin")) {
+                new ConfigMigration();
+                FarmerMigrate.getOldDatabase().migrateDatabase();
             }
         }
         return false;
