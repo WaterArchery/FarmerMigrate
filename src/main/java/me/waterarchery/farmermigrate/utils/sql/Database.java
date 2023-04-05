@@ -4,6 +4,7 @@ import me.waterarchery.farmermigrate.FarmerMigrate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.command.CommandException;
 import xyz.geik.farmer.Main;
 import xyz.geik.farmer.api.FarmerAPI;
 import xyz.geik.farmer.api.managers.DatabaseManager;
@@ -169,7 +170,12 @@ public abstract class Database {
     public void addItemsToFarmer(Farmer farmer,  HashMap<Material, Long> materialHash) {
         for (Material material : materialHash.keySet()) {
             long amount = materialHash.get(material);
-            farmer.getInv().forceSumItem(XMaterial.matchXMaterial(material), amount);
+            try {
+                farmer.getInv().forceSumItem(XMaterial.matchXMaterial(material), amount);
+            }
+            catch (Exception e) {
+                Bukkit.getConsoleSender().sendMessage("§cFarmer Migrate - " + farmer.getRegionID() + " idli çiftçiye " + material.name() + " eşyası eklenemedi.");
+            }
         }
     }
 
