@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.github.Son-Hukumdar:SimplixStorage:1.0.0-RELOADED">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/Son-Hukumdar/SimplixStorage/1.0.0-RELOADED/SimplixStorage-1.0.0-RELOADED.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/Son-Hukumdar/SimplixStorage/1.0.0-RELOADED/SimplixStorage-1.0.0-RELOADED-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/Son-Hukumdar/SimplixStorage/1.0.0-RELOADED/SimplixStorage-1.0.0-RELOADED-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

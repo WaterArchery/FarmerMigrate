@@ -1,0 +1,9 @@
+name: FarmerMigrate
+version: '${project.version}'
+main: me.waterarchery.farmermigrate.FarmerMigrate
+api-version: 1.13
+commands:
+  farmermigrate:
+    description: migrate command
+depend:
+  - Farmer
