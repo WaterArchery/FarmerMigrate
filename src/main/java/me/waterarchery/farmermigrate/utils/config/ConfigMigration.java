@@ -30,7 +30,9 @@ public class ConfigMigration {
         boolean dropCancel = cfg.getBoolean("Settings.playerDropCancel");
         List<String> worlds = cfg.getStringList("Settings.defaultWorld");
         boolean voucher = cfg.getBoolean("Settings.buyFarmer.feature");
+        int farmerPrice = cfg.getInt("Settings.buyFarmer.price");
         config.set("settings.buyFarmer", voucher);
+        config.set("settings.farmerPrice", farmerPrice);
         config.set("settings.ignorePlayerDrop", dropCancel);
         config.set("settings.worlds", worlds);
 
@@ -59,8 +61,8 @@ public class ConfigMigration {
                 config.set("levels." + key + ".reqPerm", permission);
             if (levelPrice != -1) {
                 config.set("levels." + key + ".reqMoney", 0);
-                levelPrice = cfg.getLong("FarmerLevels." + key + ".nextRankMoney");
             }
+            levelPrice = cfg.getLong("FarmerLevels." + key + ".nextRankMoney");
         }
 
         // Addons
