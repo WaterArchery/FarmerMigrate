@@ -1,5 +1,6 @@
 package me.waterarchery.farmermigrate.utils.config;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import xyz.geik.farmer.Main;
@@ -7,6 +8,7 @@ import xyz.geik.farmer.api.FarmerAPI;
 import xyz.geik.farmer.shades.storage.Config;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -106,6 +108,7 @@ public class ConfigMigration {
         autoHarvestYml.set("settings.withoutFarmer", withoutFarmer);
         autoHarvestYml.set("settings.requirePiston", requirePiston);
 
+        File itemsFile = new File("plugins/Farmer/items.yml");
         FileConfiguration itemsCfg = YamlConfiguration.loadConfiguration(new File("plugins/Ciftci/items.yml"));
         List<String> items = new ArrayList<>();
         for (String key : itemsCfg.getConfigurationSection("Items").getKeys(false)) {
@@ -113,6 +116,21 @@ public class ConfigMigration {
                 items.add(itemsCfg.getString("Items." + key + ".material"));
         }
         autoHarvestYml.set("settings.items", items);
+
+        // Item prices
+        FileConfiguration v6ItemsCfg = YamlConfiguration.loadConfiguration(itemsFile);
+        for (String key : itemsCfg.getConfigurationSection("Items").getKeys(false)) {
+            String material = itemsCfg.getString("Items." + key + ".material").toUpperCase();
+            material = material.replace("İ", "I");
+            double price = itemsCfg.getDouble("Items." + key + ".price");
+            v6ItemsCfg.set("Items." + material + ".price", price);
+            Bukkit.getConsoleSender().sendMessage("§eFarmer Migrate Found item " + material + " for price " + price);
+        }
+        try {
+            v6ItemsCfg.save(itemsFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         // TODO : Voucher item calculation maybe if it's necessary
     }
 
