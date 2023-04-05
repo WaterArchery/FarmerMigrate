@@ -73,6 +73,7 @@ public abstract class Database {
             if (connection == null) { return; }
             ps = connection.prepareStatement(query);
             ResultSet resultSet = ps.executeQuery();
+            Connection farmerConnection = DBConnection.connect();
             while (resultSet.next()) {
                 HashMap<Material, Long> materialHash = new HashMap<>();
                 ResultSetMetaData rsData = resultSet.getMetaData();
@@ -119,25 +120,25 @@ public abstract class Database {
                             Bukkit.getConsoleSender().sendMessage("§eFarmer Migrate - " + owner + " oyuncusunun sahip olduğu " + id + " idli çiftçi mevcut olduğu için atlanıyor.");
                             return;
                         }
+                        // TODO : Check level system. Is it work with v5 level parameter?
                         Farmer farmer = new Farmer(regionID, UUID.fromString(owner), level);
                         addItemsToFarmer(farmer, materialHash);
                         /*
                         modül ekleme
                          */
                         if (autoSell == 1) {
-                            farmer.changeAttribute("AutoSeller");
+                            farmer.changeAttribute("autoseller");
                         }
                         if (autoCollect == 1) {
-                            farmer.changeAttribute("AutoHarvest");
+                            farmer.changeAttribute("autoharvest");
                         }
                         if (spawnerKill == 1) {
-                            farmer.changeAttribute("SpawnerKiller");
+                            farmer.changeAttribute("spawnerkiller");
                         }
                         /*
                         farmer bağlantısı ile
                         verileri güncelleme
                          */
-                        Connection farmerConnection = DBConnection.connect();
                         farmer.saveFarmer(farmerConnection);
                         Bukkit.getConsoleSender().sendMessage("§aFarmer Migrate - " + owner + " oyuncusunun sahip olduğu " + id + " idli çiftçi kayıt edildi.");
                     }
